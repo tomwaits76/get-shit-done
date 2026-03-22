@@ -1099,8 +1099,11 @@ describe('resolveWorktreeRoot with linked worktree .planning/', () => {
       execSync(`git worktree add "${worktreeDir}" -b test-linked-no-plan`, { cwd: mainDir, stdio: 'pipe' });
 
       // resolveWorktreeRoot should return the main repo root
-      const result = resolveWorktreeRoot(worktreeDir);
-      assert.strictEqual(result, mainDir,
+      // Normalize both paths with fs.realpathSync to handle Windows 8.3 short paths
+      // (e.g., RUNNER~1 vs runneradmin on CI)
+      const result = fs.realpathSync(resolveWorktreeRoot(worktreeDir));
+      const expected = fs.realpathSync(mainDir);
+      assert.strictEqual(result, expected,
         'linked worktree without .planning/ should resolve to main repo root');
     } finally {
       if (worktreeDir) {
